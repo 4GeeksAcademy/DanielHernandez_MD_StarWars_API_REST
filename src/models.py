@@ -20,6 +20,18 @@ class User(db.Model):
     favorite_starships: Mapped[list['FavoriteStarships']] = relationship(back_populates='user')
     favorite_planets: Mapped[list['FavoritePlanets']] = relationship(back_populates='user')
     
+    def serialize(self):     
+        return {
+            "id": self.id,
+            "email": self.email,
+            "password": self.password,
+            "username": self.username,
+            "name": self.name,
+            "is_active": self.is_active,
+            "favorite_people": [fav.people.serialize() for fav in self.favorite_people],
+            "favorite_starships": [fav.starship.serialize() for fav in self.favorite_starships],
+            "favorite_planets": [fav.planet.serialize() for fav in self.favorite_planets] 
+        }    
 
 class GenderEnum(enum.Enum):
     MALE = 'male'
@@ -34,6 +46,15 @@ class People(db.Model):
     height: Mapped[int] = mapped_column(Integer, nullable=False)
     favorite_by: Mapped[List['FavoritePeople']] = relationship(back_populates='people')
 
+    def serializable(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "gender": self.gender,
+            "height": self.height
+        }
+
+
 class Starship(db.Model):
     __tablename__ = 'starship'
     id: Mapped[int] = mapped_column(primary_key = True)
@@ -41,6 +62,15 @@ class Starship(db.Model):
     cost_in_credits: Mapped[int] = mapped_column(Integer, nullable= False)
     speed: Mapped[int] = mapped_column(Integer, nullable= False)
     favorite_by: Mapped[list['FavoriteStarships']] = relationship(back_populates='starship')   
+
+    def serializable(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "cost_in_credits": self.cost_in_credits,
+            "speed": self.speed
+        }
+
 
 class Planet(db.Model):
     __tablename__ = 'planet'
@@ -50,6 +80,15 @@ class Planet(db.Model):
     population: Mapped[int] = mapped_column(Integer,nullable=False)
     climate: Mapped[str] = mapped_column(String(100), nullable= False)
     favorite_by: Mapped[List['FavoritePlanets']] = relationship(back_populates='planet')
+
+    def serializable(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "size": self.size,
+            "population": self.population,
+            "climate": self.climate
+        }
 
 class FavoritePeople(db.Model):
     __tablename__ = 'favorite_people'
