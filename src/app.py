@@ -144,23 +144,23 @@ def get_person(people_id):
 
 
 @app.route('/favorite/people/<int:people_id>', methods=['POST'])
-def add_favorite_person(peopleID):
+def add_favorite_person(people_id):
     user = User.query.get(1)
-    person = People.query.get(peopleID)
+    person = People.query.get(people_id)
 
     if not person:
         return jsonify({"msg": "Personaje no existe"}), 404
 
-    fav = FavoritePeople(user_id=user.id, people_id=peopleID)
+    fav = FavoritePeople(user_id=user.id, people_id=people_id)
     db.session.add(fav)
     db.session.commit()
     return jsonify({"msg": "Personaje agregado a favoritos"}), 201
 
 
 @app.route('/favorite/people/<int:people_id>', methods=['DELETE'])
-def delete_favorite_person(peopleID):
+def delete_favorite_person(people_id):
     fav = FavoritePeople.query.filter_by(
-        user_id=1, people_id=peopleID).first()
+        user_id=1, people_id=people_id).first()
     if fav is None:
         return jsonify({"msg": "Favorito no encontrado"}), 404
 
@@ -169,8 +169,70 @@ def delete_favorite_person(peopleID):
 
     return jsonify({"msg": "Favorito eliminado"}), 200
 
-# PLANETS
+# Starship
+@app.route('/starships', methods=['POST'])
+def add_starship():
+    body = request.get_json(silent=True)
+    if body is None:
+        return jsonify({"msg": "Debe enviar información"}), 400
+    if 'name' not in body:
+        return jsonify({"msg": "Es obligatorio el nombre de la nave"}), 400
+    if 'cost_in_credits' not in body:
+        return jsonify({"msg": "Es obligatorio el coste en créditos de la nave"}), 400
+    if 'speed' not in body:
+        return jsonify({"msg": "Es obligatoria la velocidad de la nave"}), 400
 
+    new_starship = Starship()
+    new_starship.name = body['name']
+    new_starship.cost_in_credits = body['cost_in_credits']
+    new_starship.speed = body['speed']
+    
+    db.session.add(new_starship)
+    db.session.commit()
+
+    return jsonify({"msg": "Nave agregada exitosamente"}), 201
+
+
+@app.route('/starships/', methods=['GET'])
+def get_starships():
+    starships = Starship.query.all()
+    return jsonify([v.serialize() for v in starships]), 200
+
+
+@app.route('/starships/<int:starships_id>', methods=['GET'])
+def get_starship(starship_id):
+    starship = Starship.query.get(starship_id)
+    if not starship:
+        return jsonify({"msg": "Nave no encontrada"}), 404
+    return jsonify(starship.serialize()), 200
+
+
+@app.route('/favorite/starship/<int:starship_id>', methods=['POST'])
+def add_favorite_starship(starship_id):
+    user = User.query.get(1)
+    starship = Starship.query.get(starship_id)
+
+    if not starship:
+        return jsonify({"msg": "Nave no existe"}), 404
+
+    fav = FavoriteStarships(user_id=user.id, starship_id=starship_id)
+    db.session.add(fav)
+    db.session.commit()
+    return jsonify({"msg": "Nave agregada a favoritos"}), 201
+
+
+@app.route('/favorite/ship/<int:starship_id>', methods=['DELETE'])
+def delete_favorite_starship(starship_id):
+    fav = FavoriteStarships.query.filter_by(
+        user_id=1, starship_id=starship_id).first()
+    if fav is None:
+        return jsonify({"msg": "Favorito no encontrado"}), 404
+    db.session.delete(fav)
+    db.session.commit()
+    return jsonify({"msg": "Favorito eliminado"}), 200
+
+
+# PLANETS
 
 @app.route("/planets/", methods=['POST'])
 def add_planet():
@@ -179,33 +241,19 @@ def add_planet():
         return jsonify({"msg": "Debe enviar información"}), 400
     if 'name' not in body:
         return jsonify({"msg": "Es obligatorio el nombre del planeta"}), 400
-    if 'rotation_period' not in body:
-        return jsonify({"msg": "Es obligatorio el periodo de rotación del planeta"}), 400
-    if 'orbital_period' not in body:
-        return jsonify({"msg": "Es obligatorio el periodo orbital del planeta"}), 400
-    if 'diameter' not in body:
-        return jsonify({"msg": "Es obligatorio el diámetro del planeta"}), 400
-    if 'climate' not in body:
-        return jsonify({"msg": "Es obligatorio el clima del planeta"}), 400
-    if 'gravity' not in body:
-        return jsonify({"msg": "Es obligatorio la gravedad del planeta"}), 400
-    if 'terrain' not in body:
-        return jsonify({"msg": "Es obligatorio el terreno del planeta"}), 400
-    if 'surface_water' not in body:
-        return jsonify({"msg": "Es obligatorio el agua superficial del planeta"}), 400
+    if 'size' not in body:
+        return jsonify({"msg": "Es obligatorio el tamaño del planeta"}), 400
     if 'population' not in body:
         return jsonify({"msg": "Es obligatoria la población del planeta"}), 400
+    if 'climate' not in body:
+        return jsonify({"msg": "Es obligatorio el clima del planeta"}), 400
+    
 
     new_planet = Planet()
     new_planet.name = body['name']
-    new_planet.rotation_period = body['rotation_period']
-    new_planet.orbital_period = body['orbital_period']
-    new_planet.diameter = body['diameter']
-    new_planet.climate = body['climate']
-    new_planet.gravity = body['gravity']
-    new_planet.terrain = body['terrain']
-    new_planet.surface_water = body['surface_water']
+    new_planet.size = body['size']
     new_planet.population = body['population']
+    new_planet.climate = body['climate']
 
     db.session.add(new_planet)
     db.session.commit()
@@ -235,7 +283,7 @@ def add_favorite_planet(planet_id):
     if not planet:
         return jsonify({"msg": "Planeta no existe"}), 404
 
-    fav = FavoritePlanet(user_id=user.id, planet_id=planet_id)
+    fav = FavoritePlanets(user_id=user.id, planet_id=planet_id)
     db.session.add(fav)
     db.session.commit()
 
@@ -244,7 +292,7 @@ def add_favorite_planet(planet_id):
 
 @app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
 def delete_favorite_planet(planet_id):
-    fav = FavoritePlanet.query.filter_by(
+    fav = FavoritePlanets.query.filter_by(
         user_id=1, planet_id=planet_id).first()
     if fav is None:
         return jsonify({"msg": "Favorito no encontrado"}), 404
@@ -253,90 +301,6 @@ def delete_favorite_planet(planet_id):
     db.session.commit()
 
     return jsonify({"msg": "Vehículo eliminado de favoritos"}), 200
-
-
-# VEHICLES
-@app.route('/vehicles', methods=['POST'])
-def add_vehicle():
-    body = request.get_json(silent=True)
-    if body is None:
-        return jsonify({"msg": "Debe enviar información"}), 400
-    if 'name' not in body:
-        return jsonify({"msg": "Es obligatorio el nombre del vehículo"}), 400
-    if 'model' not in body:
-        return jsonify({"msg": "Es obligatorio el modelo del vehículo"}), 400
-    if 'manufacturer' not in body:
-        return jsonify({"msg": "Es obligatorio el fabricante del vehículo"}), 400
-    if 'cost_in_credits' not in body:
-        return jsonify({"msg": "Es obligatorio el costo en créditos del vehículo"}), 400
-    if 'length' not in body:
-        return jsonify({"msg": "Es obligatoria la longitud del vehículo"}), 400
-    if 'max_atmosphering_speed' not in body:
-        return jsonify({"msg": "Es obligatoria la velocidad máxima en atmósfera del vehículo"}), 400
-    if 'crew' not in body:
-        return jsonify({"msg": "Es obligatoria la tripulación del vehículo"}), 400
-    if 'passengers' not in body:
-        return jsonify({"msg": "Es obligatoria la cantidad de pasajeros del vehículo"}), 400
-    if 'cargo_capacity' not in body:
-        return jsonify({"msg": "Es obligatoria la capacidad de carga del vehículo"}), 400
-    if 'consumables' not in body:
-        return jsonify({"msg": "Es obligatorio los consumibles del vehículo"}), 400
-
-    new_vehicle = Vehicle()
-    new_vehicle.name = body['name']
-    new_vehicle.model = body['model']
-    new_vehicle.manufacturer = body['manufacturer']
-    new_vehicle.cost_in_credits = body['cost_in_credits']
-    new_vehicle.length = body['length']
-    new_vehicle.max_atmosphering_speed = body['max_atmosphering_speed']
-    new_vehicle.crew = body['crew']
-    new_vehicle.passengers = body['passengers']
-    new_vehicle.cargo_capacity = body['cargo_capacity']
-    new_vehicle.consumables = body['consumables']
-
-    db.session.add(new_vehicle)
-    db.session.commit()
-
-    return jsonify({"msg": "Vehículo agregado exitosamente"}), 201
-
-
-@app.route('/vehicles/', methods=['GET'])
-def get_vehicles():
-    vehicles = Vehicle.query.all()
-    return jsonify([v.serialize() for v in vehicles]), 200
-
-
-@app.route('/vehicles/<int:vehicle_id>', methods=['GET'])
-def get_vehicle(vehicle_id):
-    vehicle = Vehicle.query.get(vehicle_id)
-    if not vehicle:
-        return jsonify({"msg": "Vehiculo no encontrado"}), 404
-    return jsonify(vehicle.serialize()), 200
-
-
-@app.route('/favorite/vehicle/<int:vehicle_id>', methods=['POST'])
-def add_favorite_vehicle(vehicle_id):
-    user = User.query.get(1)
-    vehicle = Vehicle.query.get(vehicle_id)
-
-    if not vehicle:
-        return jsonify({"msg": "Vehículo no existe"}), 404
-
-    fav = FavoriteVehicle(user_id=user.id, vehicle_id=vehicle_id)
-    db.session.add(fav)
-    db.session.commit()
-    return jsonify({"msg": "Vehículo agregado a favoritos"}), 201
-
-
-@app.route('/favorite/ship/<int:vehicle_id>', methods=['DELETE'])
-def delete_favorite_vehicle(vehicle_id):
-    fav = FavoriteShip.query.filter_by(
-        user_id=1, vehicle_id=vehicle_id).first()
-    if fav is None:
-        return jsonify({"msg": "Favorito no encontrado"}), 404
-    db.session.delete(fav)
-    db.session.commit()
-    return jsonify({"msg": "Favorito eliminado"}), 200
 
 
 # this only runs if `$ python src/app.py` is executed
