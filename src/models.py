@@ -13,8 +13,7 @@ class User(db.Model):
     password: Mapped[str] = mapped_column(String(20), nullable=False)
     username: Mapped[str] = mapped_column(nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean(), nullable = False)
-    date_created: Mapped[int] = mapped_column(nullable=False)
+
     
     favorite_people: Mapped[list['FavoritePeople']] = relationship(back_populates='user')
     favorite_starships: Mapped[list['FavoriteStarships']] = relationship(back_populates='user')
@@ -27,7 +26,6 @@ class User(db.Model):
             "password": self.password,
             "username": self.username,
             "name": self.name,
-            "is_active": self.is_active,
             "favorite_people": [fav.people.serialize() for fav in self.favorite_people],
             "favorite_starships": [fav.starship.serialize() for fav in self.favorite_starships],
             "favorite_planets": [fav.planet.serialize() for fav in self.favorite_planets] 

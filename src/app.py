@@ -56,7 +56,9 @@ def create_user():
         return jsonify({"msg": "Debe enviar la contraseña"}), 400
     if 'username' not in body:
         return jsonify({"msg": "Debe enviar el nombre de usuario"}), 400
-    
+    if 'name' not in body:
+        return jsonify({"msg": "Debe enviar su nombre"}), 400
+
     new_user = User()
     new_user.email = body['email']
     new_user.password = body['password']
